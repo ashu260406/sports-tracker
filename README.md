@@ -2,7 +2,7 @@
 
 Live scores, league tables, top scorers and saved teams, built with Next.js and PostgreSQL.
 
-**🔗 Live demo:** https://sports-tracker-orpin.vercel.app
+**🔗 Live demo:** https://pitchside--live.vercel.app/
 
 ![Home page](docs/home.png)
 ![Standings](docs/standings.png)
