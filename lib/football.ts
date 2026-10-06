@@ -39,3 +39,5 @@ export const getTeamMatches = (id: number | string, status = "SCHEDULED", limit 
         `/teams/${id}/matches?status=${status}&limit=${limit}`,
         120
     );
+export const getCompetitionMatches = (code: string, status: "SCHEDULED" | "FINISHED") =>
+    api<{ matches: Match[] }>(`/competitions/${code}/matches?status=${status}`, 120);

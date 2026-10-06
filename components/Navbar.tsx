@@ -18,6 +18,7 @@ export default async function Navbar() {
                     </Link>
                     <Link href="/" className={link}>Live</Link>
                     <Link href="/standings" className={link}>Standings</Link>
+                    <Link href="/champions-league" className={link}>Champions League</Link>
                     {uid && <Link href="/dashboard" className={link}>My Teams</Link>}
                 </div>
 
