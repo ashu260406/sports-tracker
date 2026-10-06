@@ -1,30 +1,78 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const UA = "PitchsideApp/1.0 (salimathashu26@gmail.com)"; // put your real email
+const cache = new Map<string, string | null>();
 
-async function summary(title: string) {
-    const res = await fetch(
-        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(
-            title.replace(/ /g, "_")
-        )}`,
-        { headers: { "User-Agent": UA }, next: { revalidate: 60 * 60 * 24 * 7 } }
-    );
-    if (!res.ok) return null;
-    return res.json();
-}
+export async function getPlayerPhoto(
+    playerName: string
+): Promise<string | null> {
+    const key = playerName.trim().toLowerCase();
 
-const isFootballer = (d: any) =>
-    /footballer|soccer|football/i.test(d?.description ?? "");
-
-export async function getPlayerPhoto(name: string): Promise<string | null> {
-    try {
-        // try the plain name first, then the "(footballer)" disambiguated page
-        for (const title of [name, `${name} (footballer)`]) {
-            const d = await summary(title);
-            if (d && d.type !== "disambiguation" && isFootballer(d) && d.thumbnail?.source)
-                return d.thumbnail.source as string;
-        }
-        return null;
-    } catch {
-        return null;
+    if (cache.has(key)) {
+        return cache.get(key) ?? null;
     }
+
+    try {
+        const searchName = encodeURIComponent(playerName);
+
+        const response = await fetch(
+            `https://www.thesportsdb.com/api/v1/json/123/searchplayers.php?p=${searchName}`,
+            {
+                next: {
+                    revalidate: 60 * 60 * 24 * 7,
+                },
+            }
+        );
+
+        if (response.ok) {
+            const data = await response.json();
+            const players = data?.player ?? [];
+
+            if (players.length > 0) {
+                const player = players[0];
+
+                const photo =
+                    player.strCutout ||
+                    player.strRender ||
+                    player.strThumb ||
+                    null;
+
+                if (photo) {
+                    cache.set(key, photo);
+                    return photo;
+                }
+            }
+        }
+    } catch {
+        // Try Wikipedia as fallback
+    }
+
+    try {
+        const title = encodeURIComponent(playerName.replace(/ /g, "_"));
+
+        const response = await fetch(
+            `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=pageimages&piprop=thumbnail&pithumbsize=500&titles=${title}`,
+            {
+                next: {
+                    revalidate: 60 * 60 * 24 * 7,
+                },
+            }
+        );
+
+        if (response.ok) {
+            const data = await response.json();
+            const pages = data?.query?.pages ?? {};
+
+            const page = Object.values(pages)[0] as any;
+
+            const photo = page?.thumbnail?.source ?? null;
+
+            if (photo) {
+                cache.set(key, photo);
+                return photo;
+            }
+        }
+    } catch {
+        // No photo available
+    }
+
+    cache.set(key, null);
+    return null;
 }
