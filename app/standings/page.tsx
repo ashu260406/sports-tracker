@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from "next/link";
 import { getStandings, getScorers } from "@/lib/football";
+import { getPlayerPhoto } from "@/lib/playerPhoto";
+import PlayerAvatar from "@/components/PlayerAvatar";
 
 const LEAGUES: Record<string, string> = {
     PL: "Premier League",
@@ -20,6 +22,10 @@ export default async function Standings({
     const table = st.standings.find((s) => s.type === "TOTAL")?.table ?? [];
     const medals = ["🥇", "🥈", "🥉"];
 
+    const photos = await Promise.all(
+        sc.scorers.map((s: any) => getPlayerPhoto(s.player.name))
+    );
+
     return (
         <>
             <h1 className="mb-4 font-display text-5xl font-extrabold uppercase">
@@ -32,8 +38,8 @@ export default async function Standings({
                         key={code}
                         href={`/standings?league=${code}`}
                         className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition ${code === league
-                                ? "border-volt bg-volt text-pitch-950"
-                                : "border-white/15 text-chalk/70 hover:border-white/40"
+                            ? "border-volt bg-volt text-pitch-950"
+                            : "border-white/15 text-chalk/70 hover:border-white/40"
                             }`}
                     >
                         {name}
@@ -101,7 +107,14 @@ export default async function Standings({
                         <div className="w-8 text-center font-display text-2xl font-bold">
                             {medals[i] ?? <span className="text-chalk/40">{i + 1}</span>}
                         </div>
-                        <img src={s.team.crest} alt="" className="h-8 w-8 object-contain" />
+                        <div className="relative">
+                            <PlayerAvatar name={s.player.name} src={photos[i]} />
+                            <img
+                                src={s.team.crest}
+                                alt=""
+                                className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-pitch-950 object-contain p-0.5"
+                            />
+                        </div>
                         <div className="min-w-0 flex-1">
                             <p className="truncate font-semibold">{s.player.name}</p>
                             <p className="text-xs text-chalk/50">

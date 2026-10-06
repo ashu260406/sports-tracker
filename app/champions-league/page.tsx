@@ -7,6 +7,8 @@ import {
     type Match,
 } from "@/lib/football";
 import LocalTime from "@/components/LocalTime";
+import { getPlayerPhoto } from "@/lib/playerPhoto";
+import PlayerAvatar from "@/components/PlayerAvatar";
 
 const DATE_TIME: Intl.DateTimeFormatOptions = {
     day: "numeric",
@@ -54,6 +56,10 @@ export default async function ChampionsLeague() {
     const results = (fin?.matches ?? []).slice(-8).reverse();
     const scorers = (sc?.scorers ?? []).slice(0, 10);
     const medals = ["🥇", "🥈", "🥉"];
+
+    const photos = await Promise.all(
+        scorers.map((s: any) => getPlayerPhoto(s.player.name))
+    );
 
     return (
         <>
@@ -161,7 +167,14 @@ export default async function ChampionsLeague() {
                         <div className="w-8 text-center font-display text-2xl font-bold">
                             {medals[i] ?? <span className="text-chalk/40">{i + 1}</span>}
                         </div>
-                        <img src={s.team.crest} alt="" className="h-8 w-8 object-contain" />
+                        <div className="relative">
+                            <PlayerAvatar name={s.player.name} src={photos[i]} />
+                            <img
+                                src={s.team.crest}
+                                alt=""
+                                className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-pitch-950 object-contain p-0.5"
+                            />
+                        </div>
                         <div className="min-w-0 flex-1">
                             <p className="truncate font-semibold">{s.player.name}</p>
                             <p className="text-xs text-chalk/50">
